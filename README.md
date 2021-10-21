@@ -39,7 +39,7 @@ forest = RandomForestClassifier() # or  RandomForestRegressor models
 acvtree = ACVTree(forest, x_train) # data should be np.ndarray with dtype=double
 ```
 The main tool of our explanations is the Same Decision Probability (SDP). Given <img src="https://latex.codecogs.com/gif.latex?x%20%3D%20%28x_S%2C%20x_%7B%5Cbar%7BS%7D%7D%29" />, the same decision probability <img src="https://latex.codecogs.com/gif.latex?SDP_S%28x%2C%20f%29" /> of variables <img src="https://latex.codecogs.com/gif.latex?x_S" />  is the probabilty that the prediction remains the same when we fixed variables 
-<img src="https://latex.codecogs.com/gif.latex?X_S = x_{S}" /> or when the variables <img src="https://latex.codecogs.com/gif.latex?X_{\bar{S}}" /> are missing.
+<img src="https://latex.codecogs.com/gif.latex?X_{S} = x_{S}" /> or when the variables <img src="https://latex.codecogs.com/gif.latex?X_{\bar{S}}" /> are missing.
 
 * **How to compute  the Same Decision Probability of a subset S <img src="https://latex.codecogs.com/gif.latex?SDP_S%28x%2C%20f%29" />  ?**
 
