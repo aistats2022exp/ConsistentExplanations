@@ -14,6 +14,12 @@ see for example [pysteps installation for OSX.](https://pypi.org/project/pysteps
 
 **Windows**: Install MinGW (a Windows distribution of gcc) or Microsoft’s Visual C
 
+Install the required packages:
+
+```
+$ pip install -r requirements.txt
+```
+
 ## Installation
 
 Clone the repo and run the following command in the main directory

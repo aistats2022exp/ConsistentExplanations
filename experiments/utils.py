@@ -1074,6 +1074,26 @@ def feature_performance_metric(ground_truth, importance_score):
     return mean_tpr, std_tpr, mean_fdr, std_fdr
 
 
+def prediction_performance_metric(y_test, y_hat):
+    """Performance metrics for prediction (AUC, APR, Accuracy).
+
+  Args:
+    - y_test: testing set labels
+    - y_hat: prediction on testing set
+
+  Returns:
+    - auc: area under roc curve
+    - apr: average precision score
+    - acc: accuracy
+  """
+
+    auc = roc_auc_score(y_test[:, 1], y_hat[:, 1])
+    apr = average_precision_score(y_test[:, 1], y_hat[:, 1])
+    acc = accuracy_score(y_test[:, 1], 1. * (y_hat[:, 1] > 0.5))
+
+    return auc, apr, acc
+
+
 def quantile_discretizer(df, num, cat_cols):
     quantiles = np.round(np.linspace(0, 1, num=num), 2)
     columns_names = list(df.columns)

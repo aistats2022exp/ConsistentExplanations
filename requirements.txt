@@ -9,3 +9,4 @@ pandas
 xgboost
 lightgbm
 catboost
+streamlit

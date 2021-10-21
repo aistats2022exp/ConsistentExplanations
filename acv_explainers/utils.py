@@ -13,6 +13,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn import datasets
+
+
 
 
 def plot_feature_importance(importance, names, model_type, xlabel='SHAP values', title=' '):
@@ -949,3 +952,194 @@ def extend_partition(rules, rules_data, sdp_all, pi, S):
     for i in range(rules.shape[0]):
         list_ric = [rules_data[i, j] for j in range(rules_data.shape[1]) if sdp_all[i, j] >= pi]
         find_union(rules[i], list_ric, S=S[i])
+
+
+def generate_x(n, dim):
+    """Generate the features (x).
+
+  Args:
+    - n: the number of samples
+    - dim: the number of features (feature dimensions)
+
+  Returns:
+    - x: (n x dim) data points sample from N(0, 1)
+  """
+    x = np.random.randn(n, dim)
+    return x
+
+
+def generate_y(x, data_type, reg=False, coefs=None, logit_values=True):
+    """Generate corresponding label (y) given feature (x).
+
+  Args:
+    - x: features
+    - data_type: synthetic data type (syn1 to syn6)
+
+  Returns:
+    - y: corresponding labels
+  """
+    # number of samples
+    n = x.shape[0]
+    if reg:
+        if data_type == 'syn7':
+            logit1 = np.sum(coefs[0:2] * x[:, 0:2], axis=1)
+            logit2 = np.sum(coefs[2:4] * x[:, 2:4], axis=1)
+            idx1 = (x[:, 4] < 0) * 1
+            idx2 = (x[:, 4] >= 0) * 1
+            logit = logit1 * idx1 + logit2 * idx2
+            return logit
+        elif data_type == 'syn8':
+            return np.sum(coefs[:3] * x[:, :3], axis=1)
+        elif data_type == 'syn9':
+            logit1 = np.sum(x[:, 2:6] ** 2, axis=1) - 4.0
+            logit2 = -10 * np.sin(0.2 * x[:, 6]) + abs(x[:, 7]) + \
+                     x[:, 8] + np.exp(-x[:, 9]) - 2.4
+
+            idx1 = (x[:, 10] < 0) * 1
+            idx2 = (x[:, 10] >= 0) * 1
+            logit = logit1 * idx1 + logit2 * idx2
+            return logit
+
+    # Logit computation
+    if data_type == 'syn1':
+        logit = np.exp(x[:, 0] * x[:, 1])
+    elif data_type == 'syn2':
+        logit = np.exp(np.sum(x[:, 2:6] ** 2, axis=1) - 4.0)
+    elif data_type == 'syn3':
+        logit = np.exp(-10 * np.sin(0.2 * x[:, 6]) + abs(x[:, 7]) + \
+                       x[:, 8] + np.exp(-x[:, 9]) - 2.4)
+    elif data_type == 'syn4':
+        logit1 = np.exp(x[:, 0] * x[:, 1])
+        logit2 = np.exp(np.sum(x[:, 2:6] ** 2, axis=1) - 4.0)
+    elif data_type == 'syn5':
+        logit1 = np.exp(x[:, 0] * x[:, 1])
+        logit2 = np.exp(-10 * np.sin(0.2 * x[:, 6]) + abs(x[:, 7]) + \
+                        x[:, 8] + np.exp(-x[:, 9]) - 2.4)
+    elif data_type == 'syn6':
+        logit1 = np.exp(np.sum(x[:, 2:6] ** 2, axis=1) - 4.0)
+        logit2 = np.exp(-10 * np.sin(0.2 * x[:, 6]) + abs(x[:, 7]) + \
+                        x[:, 8] + np.exp(-x[:, 9]) - 2.4)
+
+        # For syn4, syn5 and syn6 only
+    if data_type in ['syn4', 'syn5', 'syn6']:
+        # Based on X[:,10], combine two logits
+        idx1 = (x[:, 10] < 0) * 1
+        idx2 = (x[:, 10] >= 0) * 1
+        logit = logit1 * idx1 + logit2 * idx2
+
+    if not logit_values:
+        # Compute P(Y=0|X)
+        prob_0 = np.reshape((logit / (1 + logit)), [n, 1])
+
+        # # Sampling process
+        y = np.zeros([n, 2])
+        y[:, 0] = np.reshape(np.random.binomial(1, prob_0), [n, ])
+        y[:, 1] = 1 - y[:, 0]
+        return y[:, 1]
+    return logit / (1 + logit)
+
+
+def generate_ground_truth(x, data_type):
+    """Generate ground truth feature importance corresponding to the data type
+     and feature.
+
+  Args:
+    - x: features
+    - data_type: synthetic data type (syn1 to syn6)
+
+  Returns:
+    - ground_truth: corresponding ground truth feature importance
+  """
+
+    # Number of samples and features
+    n, d = x.shape
+
+    # Output initialization
+    ground_truth = np.zeros([n, d])
+
+    # For each data_type
+    if data_type == 'syn1':
+        ground_truth[:, :2] = 1
+    elif data_type == 'syn2':
+        ground_truth[:, 2:6] = 1
+    elif data_type == 'syn3':
+        ground_truth[:, 6:10] = 1
+
+    # Index for syn4, syn5 and syn6
+    if data_type in ['syn4', 'syn5', 'syn6', 'syn9']:
+        idx1 = np.where(x[:, 10] < 0)[0]
+        idx2 = np.where(x[:, 10] >= 0)[0]
+        ground_truth[:, 10] = 1
+
+    if data_type == 'syn4':
+        ground_truth[idx1, :2] = 1
+        ground_truth[idx2, 2:6] = 1
+    elif data_type == 'syn5':
+        ground_truth[idx1, :2] = 1
+        ground_truth[idx2, 6:10] = 1
+    elif data_type == 'syn6':
+        ground_truth[idx1, 2:6] = 1
+        ground_truth[idx2, 6:10] = 1
+    elif data_type == 'syn7':
+        idx1 = np.where(x[:, 4] < 0)[0]
+        idx2 = np.where(x[:, 4] >= 0)[0]
+        ground_truth[:, 4] = 1
+
+        ground_truth[idx1, 0:2] = 1
+        ground_truth[idx2, 2:4] = 1
+    elif data_type == 'syn8':
+        ground_truth[:, :3] = 1
+        # ground_truth[idx2, 6:10] = 1
+    elif data_type == 'syn9':
+        ground_truth[idx1, :2] = 1
+        ground_truth[idx2, 6:10] = 1
+
+    return ground_truth
+
+
+def generate_moons(x):
+    moon_x, y = datasets.make_moons(n_samples=x.shape[0], noise=4 * 0.01)
+    x = np.concatenate([moon_x, x], axis=1)
+    for i in range(x.shape[0]):
+        if x[i, 2] <= 0:
+            if y[i] == 0:
+                y[i] = 1
+            else:
+                y[i] = 0
+    ground_truth = np.zeros(shape=x.shape)
+    ground_truth[:, :3] = 1
+    return x, y, ground_truth
+
+
+def generate_dataset(mean, cov, n=10000, dim=11, data_type='syn1', seed=0, reg=False, coefs=None, logit_values=True):
+    """Generate dataset (x, y, ground_truth).
+
+  Args:
+    - n: the number of samples
+    - dim: the number of dimensions
+    - data_type: synthetic data type (syn1 to syn6)
+    - seed: random seed
+
+  Returns:
+    - x: features
+    - y: labels
+    - ground_truth: ground truth feature importance
+  """
+
+    # Seed
+    np.random.seed(seed)
+
+    # x generation
+    data_gen = st.multivariate_normal(mean, cov)
+    x = data_gen.rvs(n)
+    if data_type == 'syn_moons':
+        x, y, ground_truth = generate_moons(x)
+        return x, y, ground_truth
+
+    # x = generate_x(n, dim)
+    # y generation
+    y = generate_y(x, data_type, reg, coefs, logit_values)
+    # ground truth generation
+    ground_truth = generate_ground_truth(x, data_type)
+
+    return x, y, ground_truth
