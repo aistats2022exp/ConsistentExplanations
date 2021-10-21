@@ -2,8 +2,7 @@
  
 Active Coalition of Variables (ACV) is a Python Package that aims to explain any machine learning model or data. 
 It implemented the SDP explanations approaches of the Paper: **Consistent Sufficient Explanations and Minimal Local Rules for
-explaining regression and classification models
-**.
+explaining regression and classification models**.
  
 ## Requirements
 Python 3.6+ 
