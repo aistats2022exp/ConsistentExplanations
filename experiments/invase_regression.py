@@ -18,7 +18,24 @@ from keras import backend as K
 import tensorflow as tf
 import numpy as np
 
-from utils import bernoulli_sampling
+
+def bernoulli_sampling(prob):
+    """ Sampling Bernoulli distribution by given probability.
+
+  Args:
+    - prob: P(Y = 1) in Bernoulli distribution.
+
+  Returns:
+    - samples: samples from Bernoulli distribution
+  """
+
+    n, d = prob.shape
+    prob = np.where(prob > 1, 1, prob)
+    prob = np.where(prob < 0, 0, prob)
+    prob = np.nan_to_num(prob)
+    samples = np.random.binomial(1, prob, (n, d))
+
+    return samples
 
 
 class invase():
