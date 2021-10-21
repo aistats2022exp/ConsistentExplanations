@@ -1,7 +1,9 @@
-# Consistent Sufficient Explantions and Minimal Sufficient Rules 
+# Consistent Sufficient Explanations and Minimal Sufficient Rules 
  
 Active Coalition of Variables (ACV) is a Python Package that aims to explain any machine learning model or data. 
-It implemented the SDP explanations approaches of the Paper: [ref].
+It implemented the SDP explanations approaches of the Paper: **Consistent Sufficient Explanations and Minimal Local Rules for
+explaining regression and classification models
+**.
  
 ## Requirements
 Python 3.6+ 
@@ -27,17 +29,19 @@ To compute the different explanations, we only need a **trained Random Forest** 
 
 ### Example:
 In the following examples, we assume that we want to explain the test set (x_test) given the training set (x_train).
+
 ```python
 from acv_explainers import ACVTree
 
-forest = RandomForestClassifier() # or  Random Forest Regressor models
+forest = RandomForestClassifier() # or  RandomForestRegressor models
 #...trained the model
 
 # Initialize the explainer
 acvtree = ACVTree(forest, x_train) # data should be np.ndarray with dtype=double
 ```
 The main tool of our explanations is the Same Decision Probability (SDP). Given <img src="https://latex.codecogs.com/gif.latex?x%20%3D%20%28x_S%2C%20x_%7B%5Cbar%7BS%7D%7D%29" />, the same decision probability <img src="https://latex.codecogs.com/gif.latex?SDP_S%28x%2C%20f%29" /> of variables <img src="https://latex.codecogs.com/gif.latex?x_S" />  is the probabilty that the prediction remains the same when we fixed variables 
-<img src="https://latex.codecogs.com/gif.latex?X_S = x_{S}" /> or when we do not observe the variables <img src="https://latex.codecogs.com/gif.latex?X_{\bar{S}}" />.
+<img src="https://latex.codecogs.com/gif.latex?X_S = x_{S}" /> or when the variables <img src="https://latex.codecogs.com/gif.latex?X_{\bar{S}}" /> are missing.
+
 * **How to compute  the Same Decision Probability of a subset S <img src="https://latex.codecogs.com/gif.latex?SDP_S%28x%2C%20f%29" />  ?**
 
 ```python
@@ -45,7 +49,7 @@ sdp = acvtree.compute_sdp_rf(x_test, y_test, x_train, y_train, S)
 
 """
 Description of the arguments    
-S (np.ndarray[1]): index of variables on which we want to compute the SDP
+S (np.ndarray[1]): index of the variables on which we want to compute the SDP
 """
 ```
 * **How to compute all the Sufficient Explanations <img src="https://latex.codecogs.com/gif.latex?S^\star" /> 
